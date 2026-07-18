@@ -13,7 +13,7 @@
 
 #define sprintf_s(x, _, ...) sprintf(x, __VA_ARGS__)
 
-#if defined _WIN32
+#if defined _WIN32 && !defined __XBOX__
 #undef sprintf_s
 #endif
 
