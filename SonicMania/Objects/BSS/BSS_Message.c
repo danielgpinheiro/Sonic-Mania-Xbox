@@ -84,9 +84,7 @@ void BSS_Message_State_GetBS(void)
 
     if (self->timer == 512) {
         Music_SetMusicTrack("BlueSpheresSPD.ogg", TRACK_STAGE, 5309957);
-#if RETRO_PLATFORM != RETRO_XBOX
         Music_PlayTrack(TRACK_STAGE);
-#endif
     }
 
     if (self->timer <= 0) {
