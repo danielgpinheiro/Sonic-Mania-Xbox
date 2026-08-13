@@ -70,6 +70,19 @@ void TitleLogo_Draw(void)
             break;
 #endif
 
+#ifdef __XBOX__
+        // At the Xbox true-4:3 viewport (pixWidth=320) the copyright, authored for the
+        // wider ~16:9 (424) layout, clips off the right edge. Nudge it back inward
+        // toward the screen centre (matches the Dreamcast 320-wide port).
+        case TITLELOGO_COPYRIGHT: {
+            Vector2 copyrightPos;
+            copyrightPos.x = self->position.x - (self->position.x >> 3);
+            copyrightPos.y = self->position.y;
+            RSDK.DrawSprite(&self->mainAnimator, &copyrightPos, false);
+            break;
+        }
+#endif
+
         default: RSDK.DrawSprite(&self->mainAnimator, NULL, false); break;
     }
 }

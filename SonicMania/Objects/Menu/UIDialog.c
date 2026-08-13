@@ -33,21 +33,29 @@ void UIDialog_Draw(void)
 
     UIDialog_DrawBGShapes();
 
+#ifdef __XBOX__
+    // Scale the dialog text indents from the ~16:9 (424) layout down to the Xbox
+    // true-4:3 viewport (pixWidth=320) so the text stays inside the box.
+    int32 xScale = ScreenInfo->size.x * 256 / 424;
+#else
+    int32 xScale = 256;
+#endif
+
     Vector2 drawPos;
     switch (self->lineCount) {
         case 0:
         case 1:
-            drawPos.x = (self->position.x + 0x100000) + 0x100000;
+            drawPos.x = self->position.x + ((0x200000 * xScale) >> 8);
             drawPos.y = self->position.y - 0x200000;
             break;
 
         case 2:
-            drawPos.x = (self->position.x + 0x100000) + 0x180000;
+            drawPos.x = self->position.x + ((0x280000 * xScale) >> 8);
             drawPos.y = self->position.y - 0x280000;
             break;
 
         case 3:
-            drawPos.x = (self->position.x + 0x100000) + 0x200000;
+            drawPos.x = self->position.x + ((0x300000 * xScale) >> 8);
             drawPos.y = self->position.y - 0x300000;
             break;
 
@@ -82,7 +90,7 @@ void UIDialog_Draw(void)
         RSDK.DrawText(&self->animator, &drawPos, &self->textInfo, start, len, 0, 0, NULL, NULL, false);
 
         drawPos.y += 0x120000;
-        drawPos.x = drawPos.x - offset - 0x120000;
+        drawPos.x = drawPos.x - offset - ((0x120000 * xScale) >> 8);
     }
 }
 
@@ -264,8 +272,18 @@ void UIDialog_DrawBGShapes(void)
                   ((ScreenInfo->position.y + ScreenInfo->center.y) << 16) - (self->bgRectSize.y >> 1), self->bgRectSize.x, self->bgRectSize.y,
                   self->useAltColor ? 0x282028 : 0x000000, 0xFF, INK_NONE, false);
 
+#ifdef __XBOX__
+    // Narrow the dialog parallelogram to the Xbox true-4:3 viewport (pixWidth=320) so it
+    // doesn't run off the edges of the ~16:9 (424) layout it was authored for.
+    int32 paraWidth = 0xC8 * ScreenInfo->size.x / 424;
+    int32 paraEdge  = 0x8F * ScreenInfo->size.x / 424;
+#else
+    int32 paraWidth = 0xC8;
+    int32 paraEdge  = 0x8F;
+#endif
     UIWidgets_DrawParallelogram(self->dialogPos.x + ((ScreenInfo->position.x + ScreenInfo->center.x) << 16),
-                                self->dialogPos.y + ((ScreenInfo->position.y + ScreenInfo->center.y) << 16), 0xC8, 0x8F, 0x8F, 0x30, 0xA0, 0xF0);
+                                self->dialogPos.y + ((ScreenInfo->position.y + ScreenInfo->center.y) << 16), paraWidth, 0x8F, paraEdge, 0x30,
+                                0xA0, 0xF0);
 }
 
 void UIDialog_HandleButtonPositions(void)

@@ -46,6 +46,37 @@ void UIPicture_Create(void *data)
     RSDK.SetSpriteAnimation(UIPicture->aniFrames, self->listID, &self->animator, true, self->frameID);
 
     if (!SceneInfo->inEditor) {
+#ifdef __XBOX__
+        // The boot "Logos" screen (SEGA etc.) is authored for the wider ~16:9 (424) layout
+        // and clips at the Xbox true-4:3 viewport (pixWidth=320). Rescale each logo's x
+        // offset from the layout centre down to the actual screen width, then nudge the
+        // multi-page grid entries back apart (matches the Dreamcast 320-wide port).
+        if (RSDK.CheckSceneFolder("Logos")) {
+            int32 center     = 0x100 << 16;
+            int32 offset     = self->position.x - center;
+            self->position.x = center + offset * ScreenInfo->size.x / 424;
+
+            if (self->position.y >= (SCREEN_YSIZE << 16)) {
+                int32 pageY      = self->position.y % (SCREEN_YSIZE << 16);
+                int32 pageCenter = (SCREEN_YSIZE / 2) << 16;
+                bool32 isBottom  = pageY > pageCenter;
+                bool32 isLeft    = self->position.x < center;
+
+                if (isLeft)
+                    self->position.y -= 12 << 16;
+                else
+                    self->position.y += 12 << 16;
+
+                if (isBottom) {
+                    if (isLeft)
+                        self->position.x -= 6 << 16;
+                    else
+                        self->position.x += 6 << 16;
+                }
+            }
+        }
+#endif
+
         if (RSDK.CheckSceneFolder("Menu")) {
             self->active    = ACTIVE_BOUNDS;
             self->visible   = true;
